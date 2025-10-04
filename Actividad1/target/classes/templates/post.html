@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Lista de Posts</title></head>
+<body>
+<h1>Posts</h1>
+<div th:replace="~{fragments/nav}"></div>
+<ul>
+    <li th:each="p : ${posts}">
+        <h3 th:text="${p.autor.nombre}"></h3>:
+        <b th:text="${p.texto}"></b>
+        <p th:text="${p.fecha}"></p><br>
+
+        <p th:text="${p.likes}"></p>
+        <p th:text="${p.reposts}"></p>
+
+        <form action="/post" method="post">
+            <button name="like">Dar like</button>
+            <button name="repost">Dar respost</button>
+        </form>
+    </li>
+</ul>
+</body>
+</html>
