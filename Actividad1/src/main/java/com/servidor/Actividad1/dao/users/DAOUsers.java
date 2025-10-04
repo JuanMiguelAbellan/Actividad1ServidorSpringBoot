@@ -8,4 +8,6 @@ public interface DAOUsers {
     public void add(User user);
     public List<User> getUsers();
     public User buscar(String nombre);
+    public User getUsuarioActual();
+    public void setUsuarioActual(User user);
 }

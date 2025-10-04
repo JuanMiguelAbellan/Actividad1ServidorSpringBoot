@@ -19,6 +19,7 @@ public class Post {
         this.likes=0;
         this.reposts=0;
         this.id=contadorId++;
+        this.referencia=autor;
     }
 
     public int getLikes() {
@@ -55,5 +56,9 @@ public class Post {
 
     public void setReferencia(User referencia) {
         this.referencia = referencia;
+    }
+
+    public User getReferencia() {
+        return referencia;
     }
 }

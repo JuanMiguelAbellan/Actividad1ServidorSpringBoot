@@ -9,6 +9,8 @@ public class DAOUsersRAM implements DAOUsers {
 
     private List<User> listaUsers;
 
+    private User usuarioActual;
+
     public DAOUsersRAM(){
         this.listaUsers = new ArrayList<>();
     }
@@ -16,6 +18,7 @@ public class DAOUsersRAM implements DAOUsers {
     @Override
     public void add(User user) {
         listaUsers.add(user);
+        setUsuarioActual(user);
     }
 
     @Override
@@ -34,5 +37,13 @@ public class DAOUsersRAM implements DAOUsers {
             }
         }
         return encontrado;
+    }
+
+    public User getUsuarioActual() {
+        return usuarioActual;
+    }
+
+    public void setUsuarioActual(User usuarioActual) {
+        this.usuarioActual = usuarioActual;
     }
 }

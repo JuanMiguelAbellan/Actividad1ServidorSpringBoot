@@ -17,7 +17,6 @@ public class UserController {
 
     @GetMapping("/")
     public String index() {
-        List<User> listaUsuarios = DAOFactory.getInstance().getDaoUsers().getUsers();
         return "index";
     }
 
@@ -27,9 +26,10 @@ public class UserController {
     }
 
     @PostMapping("/registro")
-    public String registrarUsuario(User user) {
-        List<User> listaUsuarios= DAOFactory.getInstance().getDaoUsers().getUsers();
-        listaUsuarios.add(user);
+    public String registrarUsuario(User user, Model model) {
+        DAOFactory.getInstance().getDaoUsers().add(user);
+        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+        model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
     }
 
@@ -41,24 +41,17 @@ public class UserController {
     @PostMapping("/login")
     public String validarUsuario(User user, Model model) {
         List<User> listaUsuarios = DAOFactory.getInstance().getDaoUsers().getUsers();
+
         for (User u : listaUsuarios) {
-            if (u.equals(user)) {
-                model.addAttribute("usuario", user.getNombre());
+            if (u.getNombre().equals(user.getNombre())&& u.getPassword().equals(user.getPassword())) {
+                DAOFactory.getInstance().getDaoUsers().setUsuarioActual(user);
+                User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+                model.addAttribute("usuario", usuarioActual.getNombre());
                 return "inicio";
             }
         }
         model.addAttribute("error", "Usuario o contraseña incorrectos");
         return "login";
-    }
-
-    //
-    @PostMapping("/post/{id}/reposts")
-    public String darRepost(@PathVariable int id, @RequestParam String autor) {
-        Post post = DAOFactory.getInstance().getDaoPosts().buscarPorId(id);
-        post.darRepost();
-        User userAutor = DAOFactory.getInstance().getDaoUsers().buscar(autor);
-        post.setReferencia(userAutor);
-        return "post";
     }
 }
 

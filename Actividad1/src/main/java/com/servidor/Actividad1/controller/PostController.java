@@ -42,9 +42,29 @@ public class PostController {
     }
 
     @PostMapping("/post/{id}")
-    public String darLike(@PathVariable int id, @RequestParam String like) {
-        Post post = DAOFactory.getInstance().getDaoPosts().buscarPorId(id);
-        post.darLike();
+    public String accionBotones(@PathVariable int id,
+                             @RequestParam String boton,
+                             Model model) {
+        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
+        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+
+        Post nuevoPost = null;
+
+        for (Post p : listaPosts) {
+            if (p.getId() == id) {
+                if (boton.equals("like")) {
+                    p.darLike();
+                }
+                else if (boton.equals("repost")) {
+                    p.darRepost();
+                    nuevoPost = new Post(usuarioActual, p.getTexto());
+
+                    nuevoPost.setReferencia(p.getAutor());
+                }
+            }
+        }
+        listaPosts.add(nuevoPost);
+        model.addAttribute("posts", listaPosts);
         return "post";
     }
 }
