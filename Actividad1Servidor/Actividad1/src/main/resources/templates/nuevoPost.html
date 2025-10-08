@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Nuevo Post</title>
+    <link rel="stylesheet" type="text/css" href="/estilos.css" >
+</head>
+<body>
+<h1>Crear nuevo Post</h1>
+<div th:replace="~{fragments/nav}"></div>
+<form action="/nuevoPost" method="post">
+    <input type="text" name="texto" placeholder="Escribe tu post" required><br>
+    <input type="text" name="autor" placeholder="Tu usuario" required><br>
+    <button type="submit">Publicar</button>
+</form>
+<p th:text="${error}"> </p>
+</body>
+</html>
