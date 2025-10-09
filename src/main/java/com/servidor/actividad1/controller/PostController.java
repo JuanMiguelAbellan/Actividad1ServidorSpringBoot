@@ -123,6 +123,7 @@ public class PostController {
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
         }
+
         model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";

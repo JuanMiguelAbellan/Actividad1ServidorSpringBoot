@@ -34,6 +34,7 @@ public class UserController {
                 return "registro";
             }
         }
+
         listaUsuarios.add(user);
         DAOFactory.getInstance().getDaoUsers().setUsuarioActual(user);
         model.addAttribute("usuario", user.getNombre());
