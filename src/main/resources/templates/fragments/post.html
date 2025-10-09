@@ -1,0 +1,35 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<div>
+    <form action="/busqueda" method="post">
+        <label>Bucar por:</label>
+        <select name="tipoBuscado">
+            <option value="usuario">Usuario</option>
+            <option value="post">Texto</option>
+            <option value="fecha">Fecha</option>
+        </select>
+        <input type="text" name="buscado" placeholder="Palabra que buscas">
+        <button>Enviar</button>
+    </form>
+    <form action="/ordenar" method="post">
+        <label>Ordenar por:</label>
+        <select name="tipoOrden">
+            <option value="ascendente">Ascendente</option>
+            <option value="descendente">Descendente</option>
+        </select>
+        <button>Enviar</button>
+    </form>
+    <div class="lista" th:each="p : ${posts}">
+        <h3 class="autor" th:text="${p.autor.nombre}"></h3>
+        <h4 class="referencia" >Referencia: </h4><h4 th:text="${p.referencia.nombre}"></h4>
+        <p class="texto" th:text="${p.texto}"></p>
+        <p class="fecha" th:text="${p.fecha}"></p><br>
+        <p>Likes: </p><p th:text="${p.likes}"></p>
+        <p>Repost: </p><p th:text="${p.reposts}"></p>
+
+        <form th:action="@{/post/{id}(id=${p.id})}" method="post">
+            <button name="boton" value="like">Dar like</button>
+            <button name="boton" value="repost">Dar respost</button>
+        </form>
+    </div>
+</div>
+</html>
