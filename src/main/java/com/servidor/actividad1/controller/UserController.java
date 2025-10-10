@@ -3,6 +3,8 @@ package com.servidor.actividad1.controller;
 import com.servidor.actividad1.clases.User;
 import com.servidor.actividad1.dao.DAOFactory;
 import com.servidor.actividad1.clases.Post;
+import com.servidor.actividad1.dao.DBConecctor;
+import com.servidor.actividad1.dao.users.DAOUsersSQL;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,20 +29,19 @@ public class UserController {
 
     @PostMapping("/registro")
     public String registrarUsuario(User user, Model model) {
-        List<User> listaUsuarios= DAOFactory.getInstance().getDaoUsers().getUsers();
-        for(User u : listaUsuarios){
-            if(u.getNombre().equals(user.getNombre()) && u.getPassword().equals(user.getPassword())){
-                System.out.println("Usuario ya creado");
-                return "registro";
-            }
-        }
+        DAOUsersSQL conexionUser=new DAOUsersSQL();
+        if(!conexionUser.validacionUser(user.getNombre(), user.getPassword())){
+            conexionUser.add(user);
+            model.addAttribute("usuario", user.getNombre());
+            conexionUser.setUsuarioActual(user);
 
-        listaUsuarios.add(user);
-        DAOFactory.getInstance().getDaoUsers().setUsuarioActual(user);
-        model.addAttribute("usuario", user.getNombre());
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
-        model.addAttribute("posts", listaPosts);
-        return "inicio";
+            List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
+            model.addAttribute("posts", listaPosts);
+
+            return "inicio";
+        }
+        System.out.println("Usuario ya creado");
+        return "registro";
     }
 
     @GetMapping("/login")
@@ -50,15 +51,15 @@ public class UserController {
 
     @PostMapping("/login")
     public String validarUsuario(User user, Model model) {
-        List<User> listaUsuarios = DAOFactory.getInstance().getDaoUsers().getUsers();
-        for (User u : listaUsuarios) {
-            if (u.getNombre().equals(user.getNombre()) && u.getPassword().equals(user.getPassword())) {
-                model.addAttribute("usuario", user.getNombre());
-                List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
-                DAOFactory.getInstance().getDaoUsers().setUsuarioActual(user);
-                model.addAttribute("posts", listaPosts);
-                return "inicio";
-            }
+        DAOUsersSQL users = new DAOUsersSQL();
+        if (users.validacionUser(user.getNombre(), user.getPassword())){
+            model.addAttribute("usuario", user.getNombre());
+            users.setUsuarioActual(user);
+
+            List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
+            model.addAttribute("posts", listaPosts);
+
+            return "inicio";
         }
         model.addAttribute("error", "Usuario o contraseña incorrectos");
         return "login";

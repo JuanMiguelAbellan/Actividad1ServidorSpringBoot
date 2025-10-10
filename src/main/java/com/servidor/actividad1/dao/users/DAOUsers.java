@@ -11,11 +11,8 @@ import java.util.List;
 public interface DAOUsers {
     void add(User user);
 
-    List<User> getUsers();
+    User getUser(String nombre);
 
-    User buscar(String nombre);
-
-    User getUsuarioActual();
 
     void setUsuarioActual(User user);
 }

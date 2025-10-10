@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package com.servidor.actividad1.dao;
 
 import com.servidor.actividad1.dao.posts.DAOPost;

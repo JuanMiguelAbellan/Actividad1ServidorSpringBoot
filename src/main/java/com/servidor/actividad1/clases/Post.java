@@ -3,8 +3,6 @@ package com.servidor.actividad1.clases;
 import java.time.LocalDate;
 
 public class Post {
-    private static int contadorId = 0;
-    private final int id;
     private final User autor;
     private String texto;
     private LocalDate fecha;
@@ -18,7 +16,6 @@ public class Post {
         this.fecha = LocalDate.now();
         this.likes = 0;
         this.reposts = 0;
-        this.id = contadorId++;
         this.referencia = autor;
     }
 
@@ -40,10 +37,6 @@ public class Post {
 
     public LocalDate getFecha() {
         return this.fecha;
-    }
-
-    public int getId() {
-        return this.id;
     }
 
     public void darLike() {

@@ -24,11 +24,6 @@ public class DAOPostRAM implements DAOPost {
         return filtrados.stream().toList();
     }
 
-    public Post buscarPorId(int id) {
-        Optional<Post> filtrado = this.listaPost.stream().filter((post) -> post.getId() == id).findFirst();
-        return (Post)filtrado.orElse( null);
-    }
-
     public List<Post> buscarPorTexto(String texto) {
         Optional<Post> filtrados = this.listaPost.stream().filter((post) -> post.getTexto().equals(texto)).findAny();
         return filtrados.stream().toList();

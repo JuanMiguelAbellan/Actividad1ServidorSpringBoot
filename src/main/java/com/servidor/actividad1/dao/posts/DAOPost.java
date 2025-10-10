@@ -15,8 +15,6 @@ public interface DAOPost {
 
     List<Post> buscarPorNombre(String nombre);
 
-    Post buscarPorId(int id);
-
     List<Post> buscarPorTexto(String texto);
 
     List<Post> buscarPorFecha(LocalDate fecha);
