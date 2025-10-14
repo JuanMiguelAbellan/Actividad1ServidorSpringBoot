@@ -3,6 +3,7 @@ package com.servidor.actividad1.clases;
 import java.time.LocalDate;
 
 public class Post {
+    private final int id;
     private final User autor;
     private String texto;
     private LocalDate fecha;
@@ -10,13 +11,18 @@ public class Post {
     private int reposts;
     private User referencia;
 
-    public Post(User autor, String texto) {
+    public Post(int id, User autor, String texto) {
+        this.id=id;
         this.autor = autor;
         this.texto = texto;
         this.fecha = LocalDate.now();
         this.likes = 0;
         this.reposts = 0;
         this.referencia = autor;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getLikes() {

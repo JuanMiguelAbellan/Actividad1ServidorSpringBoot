@@ -15,4 +15,6 @@ public interface DAOUsers {
 
 
     void setUsuarioActual(User user);
+
+    User getUsuarioActual();
 }
