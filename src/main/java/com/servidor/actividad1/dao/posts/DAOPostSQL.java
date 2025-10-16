@@ -48,7 +48,7 @@ public class DAOPostSQL implements DAOPost{
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+                listaUsuarios.add(new User( rs.getString("nombre"), null));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -75,7 +75,7 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public List<Post> buscarPorNombre(String nombre) {
-        User user = new User(0 , nombre, null);
+        User user = new User(nombre, null);
 
         List<Post> listaPosts=new ArrayList<>();
         String query = "select * from posts where idUsuario= (select idUsuario where nombre = ?)";
@@ -106,7 +106,7 @@ public class DAOPostSQL implements DAOPost{
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+                listaUsuarios.add(new User( rs.getString("nombre"), null));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -140,7 +140,7 @@ public class DAOPostSQL implements DAOPost{
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+                listaUsuarios.add(new User( rs.getString("nombre"), null));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -256,7 +256,7 @@ public class DAOPostSQL implements DAOPost{
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+                listaUsuarios.add(new User( rs.getString("nombre"), null));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

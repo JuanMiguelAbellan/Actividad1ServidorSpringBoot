@@ -12,11 +12,7 @@ public class User {
         this.password = password;
     }
 
-    public User(int id, String nombre, String password){
-        this.id = id;
-        this.nombre = nombre;
-        this.password = password;
-    }
+
 
     public int getId() {
         return id;

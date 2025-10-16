@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DAOUsersSQL implements DAOUsers{
-    private User usuarioActual=new User(0," ", "");
+    private User usuarioActual=new User(" ", "");
 
     @Override
     public void add(User user) {
@@ -34,7 +34,7 @@ public class DAOUsersSQL implements DAOUsers{
             statement.setString(1, nombre);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                usuario=new User(rs.getInt("idUsuario"), rs.getString("nombre"), rs.getNString("contraseña"));
+                usuario=new User( rs.getString("nombre"), rs.getNString("contraseña"));
             }
         }catch (SQLException e){
             throw new RuntimeException(e);
