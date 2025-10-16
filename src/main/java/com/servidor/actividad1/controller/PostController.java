@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
+import com.servidor.actividad1.dao.posts.DAOPostSQL;
+import com.servidor.actividad1.dao.users.DAOUsersSQL;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +23,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PostController {
     @GetMapping({"/post"})
     public String listarPosts(Model model) {
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        List<Post> listaPosts = conexionPost.getPosts();
         User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
         model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
@@ -34,17 +38,20 @@ public class PostController {
 
     @PostMapping({"/nuevoPost"})
     public String crearPost(@RequestParam String texto, @RequestParam String autor, Model model) {
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
-        User userAutor = DAOFactory.getInstance().getDaoUsers().buscar(autor);
-        listaPosts.add(new Post(userAutor, texto));
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        DAOUsersSQL conexionUser= new DAOUsersSQL();
+        User userAutor = conexionUser.getUser(autor);
+
+        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+
         if(userAutor==null){
             model.addAttribute("error", "No existe ese usuario");
             return "nuevoPost";
         }else {
-            User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+            conexionPost.add(new Post(userAutor, texto));
+            List<Post> listaPosts = conexionPost.getPosts();
             model.addAttribute("posts", listaPosts);
             model.addAttribute("usuario", usuarioActual.getNombre());
-            //System.out.println(DAOFactory.getInstance().getDaoUsers().getUsuarioActual().getNombre());
             return "inicio";
         }
     }
@@ -81,50 +88,42 @@ public class PostController {
 
     @PostMapping({"/busqueda"})
     public String mostrarBusqueda(@RequestParam String tipoBuscado, @RequestParam String buscado, Model model){
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
-        List<Post> listaFiltrada = new ArrayList<>();
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        List<Post> listaPost=new ArrayList<>();
+
         User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
         if(tipoBuscado.equals("usuario")){
-            for(Post p: listaPosts){
-                if(p.getAutor().getNombre().equals( buscado)){
-                    listaFiltrada.add(p);
-                }
-            }
+            listaPost= conexionPost.buscarPorNombre(buscado);
         } else if (tipoBuscado.equals("post")) {
-            for(Post p: listaPosts){
-                if(p.getTexto().contains(buscado)){
-                    listaFiltrada.add(p);
-                }
-            }
+            listaPost= conexionPost.buscarPorTexto(buscado);
         }
         else if (tipoBuscado.equals("fecha")) {
-            for(Post p: listaPosts){
-                if(p.getFecha().toString().equals(buscado)){
-                    listaFiltrada.add(p);
-                }
-            }
+            listaPost= conexionPost.buscarPorFecha(buscado);
         }
-        model.addAttribute("posts", listaFiltrada);
+        model.addAttribute("posts", listaPost);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
     }
 
     @PostMapping({"/ordenar"})
     public String mostrarFiltrado(@RequestParam String tipoOrden, Model model){
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        List<Post> listaPost=new ArrayList<>();
         User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
 
         if(tipoOrden.equals("ascendente")){
-            model.addAttribute("posts", listaPosts);
+            listaPost= conexionPost.ordenarAscendente(true);
+            model.addAttribute("posts", listaPost);
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
         }else if(tipoOrden.equals("descendente")){
-            model.addAttribute("posts", listaPosts.reversed());
+            listaPost= conexionPost.ordenarAscendente(false);
+            model.addAttribute("posts", listaPost);
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
         }
 
-        model.addAttribute("posts", listaPosts);
+        model.addAttribute("posts", listaPost);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
     }

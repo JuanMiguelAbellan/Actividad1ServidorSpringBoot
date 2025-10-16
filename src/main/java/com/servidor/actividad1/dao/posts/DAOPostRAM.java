@@ -29,7 +29,7 @@ public class DAOPostRAM implements DAOPost {
         return filtrados.stream().toList();
     }
 
-    public List<Post> buscarPorFecha(LocalDate fecha) {
+    public List<Post> buscarPorFecha(String fecha) {
         Optional<Post> filtrados = this.listaPost.stream().filter((post) -> post.getFecha().equals(fecha)).findAny();
         return filtrados.stream().toList();
     }

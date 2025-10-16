@@ -5,6 +5,7 @@ import com.servidor.actividad1.clases.User;
 import com.servidor.actividad1.dao.DBConecctor;
 import com.servidor.actividad1.dao.users.DAOUsers;
 import com.servidor.actividad1.dao.users.DAOUsersSQL;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -128,8 +130,39 @@ public class DAOPostSQL implements DAOPost{
     }
 
     @Override
-    public List<Post> buscarPorFecha(LocalDate fecha) {
-        return List.of();
+    public List<Post> buscarPorFecha(String fecha) {
+        List<Post> listaPosts=new ArrayList<>();
+
+        List<User> listaUsuarios= new ArrayList<>();
+
+        String query1= "select * from usuarios";
+        try {
+            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()){
+                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String query2= "select * from post where fecha < ?";
+        try {
+            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query2);
+            statement.setString(1, fecha);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()){
+                for(User u : listaUsuarios){
+                    if(u.getId() == rs.getInt("idPropietario")) {
+                        listaPosts.add(new Post(rs.getInt("idPost"), u, rs.getNString("texto")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return listaPosts;
     }
 
     @Override
@@ -190,7 +223,6 @@ public class DAOPostSQL implements DAOPost{
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
             statement.setInt(1, conexionUser.getUsuarioActual().getId());
             statement.setInt(2, post.getId());
-            statement.setInt(3, post.getId());
             statement.executeQuery();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -207,11 +239,48 @@ public class DAOPostSQL implements DAOPost{
         try {
             PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
             statement.setInt(1, conexionUser.getUsuarioActual().getId());
-            statement.setInt(2, post.getId());
+            statement.setInt(2, post.getAutor().getId());
             statement.setInt(3, post.getId());
             statement.executeQuery();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Post> ordenarAscendente(boolean ascendente){
+        List<Post> listaPosts=new ArrayList<>();
+        List<User> listaUsuarios= new ArrayList<>();
+
+        String query1= "select * from usuarios";
+        try {
+            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()){
+                listaUsuarios.add(new User(rs.getInt("idUsusario"), rs.getString("nombre"), null));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        String query = "";
+        if (ascendente){
+            query="select * from posts order by fecha ASC";
+        }else {
+            query= "select * from posts order by fecha DESC";
+        }
+        try {
+            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()){
+                for(User u : listaUsuarios){
+                    if(u.getId() == rs.getInt("idPropietario")) {
+                        listaPosts.add(new Post(rs.getInt("idPost"), u, rs.getNString("texto")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return listaPosts;
     }
 }

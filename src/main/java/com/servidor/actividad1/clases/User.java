@@ -1,11 +1,18 @@
 package com.servidor.actividad1.clases;
 
 public class User {
+    private static int contador=0;
     private String nombre;
     private String password;
     private final int id;
 
-    public User(int id, String nombre, String password) {
+    public User(String nombre, String password) {
+        this.id = contador++;
+        this.nombre = nombre;
+        this.password = password;
+    }
+
+    public User(int id, String nombre, String password){
         this.id = id;
         this.nombre = nombre;
         this.password = password;

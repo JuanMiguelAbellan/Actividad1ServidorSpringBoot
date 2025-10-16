@@ -17,7 +17,7 @@ public interface DAOPost {
 
     List<Post> buscarPorTexto(String texto);
 
-    List<Post> buscarPorFecha(LocalDate fecha);
+    List<Post> buscarPorFecha(String fecha);
 
     void borrar(Post post);
 
