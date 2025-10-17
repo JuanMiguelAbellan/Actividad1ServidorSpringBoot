@@ -7,10 +7,7 @@ import com.servidor.actividad1.dao.users.DAOUsers;
 import com.servidor.actividad1.dao.users.DAOUsersSQL;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -27,12 +24,12 @@ public class DAOPostSQL implements DAOPost{
         String query = "insert into posts (idPropietario, texto, fecha) values (" +
                 "(select idUsuario from usuarios where nombre = ?)" +
                 ", ?, ?)";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setString(1, conexionUser.getUsuarioActual().getNombre());
             statement.setString(2, post.getTexto());
             statement.setString(3, DATE_FORMAT.format(post.getFecha()));
-            statement.executeQuery();
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -44,24 +41,34 @@ public class DAOPostSQL implements DAOPost{
         List<User> listaUsuarios= new ArrayList<>();
 
         String query1= "select * from usuarios";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+        String query = "select u.idUsuario, u.nombre, p.idPost, p.idPropietario, p.texto from usuarios u, posts p";
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                listaUsuarios.add(new User( rs.getString("nombre"), null));
+                listaUsuarios.add(new User(rs.getInt("idUsuario"), rs.getString("nombre"), null));
+
+                for(User u : listaUsuarios){
+                    if(u.getId() == rs.getInt("idPropietario")) {
+                        System.out.println(listaUsuarios.getFirst().getNombre());
+                        listaPosts.add(new Post(rs.getInt("idPost") ,u, rs.getNString("texto")));
+                        System.out.println(listaPosts.getFirst().getTexto());
+                    }
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        String query3= "select * from posts";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query3);
+        String query2= "select * from posts";
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query2);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 for(User u : listaUsuarios){
                     if(u.getId() == rs.getInt("idPropietario")) {
                         listaPosts.add(new Post(rs.getInt("idPost") ,u, rs.getNString("texto")));
+                        System.out.println(listaPosts.getFirst().getTexto());
                     }
                 }
             }
@@ -78,10 +85,10 @@ public class DAOPostSQL implements DAOPost{
         User user = new User(nombre, null);
 
         List<Post> listaPosts=new ArrayList<>();
-        String query = "select * from posts where idUsuario= (select idUsuario where nombre = ?)";
+        String query = "select * from posts where idPropietario= (select idUsuario from usuarios where nombre = ?)";
 
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setString(1, nombre);
             ResultSet rs = statement.executeQuery();
 
@@ -102,8 +109,8 @@ public class DAOPostSQL implements DAOPost{
         List<User> listaUsuarios= new ArrayList<>();
 
         String query1= "select * from usuarios";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 listaUsuarios.add(new User( rs.getString("nombre"), null));
@@ -112,9 +119,9 @@ public class DAOPostSQL implements DAOPost{
             throw new RuntimeException(e);
         }
 
-        String query3= "select * from posts where texto like '%"+texto+"%'";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query3);
+        String query2= "select * from posts where texto like '%"+texto+"%'";
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query2);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 for(User u : listaUsuarios){
@@ -136,8 +143,8 @@ public class DAOPostSQL implements DAOPost{
         List<User> listaUsuarios= new ArrayList<>();
 
         String query1= "select * from usuarios";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 listaUsuarios.add(new User( rs.getString("nombre"), null));
@@ -147,8 +154,8 @@ public class DAOPostSQL implements DAOPost{
         }
 
         String query2= "select * from post where fecha < ?";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query2);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query2);
             statement.setString(1, fecha);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
@@ -169,8 +176,8 @@ public class DAOPostSQL implements DAOPost{
     public void borrar(Post post) {
         String query = "delete from posts where idPost= ?";
 
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, post.getId());
             ResultSet rs = statement.executeQuery();
         } catch (SQLException e) {
@@ -182,8 +189,8 @@ public class DAOPostSQL implements DAOPost{
     public int getLikes(Post post) {
         String query="select idPost from likes where idPost= ?";
         int likes=0;
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, post.getId());
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
@@ -199,8 +206,8 @@ public class DAOPostSQL implements DAOPost{
     public int getRepost(Post post) {
         String query="select idPost from repost where idPost= ?";
         int reposts=0;
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, post.getId());
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
@@ -219,11 +226,11 @@ public class DAOPostSQL implements DAOPost{
         String query = "insert into likes (idUsuario, idPost) values ( "+
                 "?" +
                 ", ?)";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, conexionUser.getUsuarioActual().getId());
             statement.setInt(2, post.getId());
-            statement.executeQuery();
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -236,12 +243,12 @@ public class DAOPostSQL implements DAOPost{
         String query = "insert into repost (idUsuarioRepost, idUsuarioReferencia, idPost) values ( ?, "+
                 "(select idUsuario from posts where idPost = ?)" +
                 ", ?)";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, conexionUser.getUsuarioActual().getId());
             statement.setInt(2, post.getAutor().getId());
             statement.setInt(3, post.getId());
-            statement.executeQuery();
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -252,8 +259,8 @@ public class DAOPostSQL implements DAOPost{
         List<User> listaUsuarios= new ArrayList<>();
 
         String query1= "select * from usuarios";
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query1);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query1);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 listaUsuarios.add(new User( rs.getString("nombre"), null));
@@ -262,14 +269,14 @@ public class DAOPostSQL implements DAOPost{
             throw new RuntimeException(e);
         }
 
-        String query = "";
+        String query;
         if (ascendente){
             query="select * from posts order by fecha ASC";
         }else {
             query= "select * from posts order by fecha DESC";
         }
-        try {
-            PreparedStatement statement= DBConecctor.getInstance().prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
                 for(User u : listaUsuarios){

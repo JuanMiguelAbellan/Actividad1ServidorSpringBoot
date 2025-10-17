@@ -1,13 +1,15 @@
 package com.servidor.actividad1.clases;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Date;
 
 public class Post {
     private static int contador=0;
     private final int id;
     private final User autor;
     private String texto;
-    private LocalDate fecha;
+    private Date fecha;
     private int likes;
     private int reposts;
     private User referencia;
@@ -16,7 +18,7 @@ public class Post {
         this.id=contador++;
         this.autor = autor;
         this.texto = texto;
-        this.fecha = LocalDate.now();
+        this.fecha = Date.from(Instant.now());
         this.likes = 0;
         this.reposts = 0;
         this.referencia = autor;
@@ -26,7 +28,7 @@ public class Post {
         this.id=id;
         this.autor = autor;
         this.texto = texto;
-        this.fecha = LocalDate.now();
+        this.fecha = Date.from(Instant.now());
         this.likes = 0;
         this.reposts = 0;
         this.referencia = autor;
@@ -52,7 +54,7 @@ public class Post {
         return this.autor;
     }
 
-    public LocalDate getFecha() {
+    public Date getFecha() {
         return this.fecha;
     }
 

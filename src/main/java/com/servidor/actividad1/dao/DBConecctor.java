@@ -9,29 +9,20 @@ import java.sql.SQLException;
 
 public class DBConecctor {
 
-    private static Connection conexion;
-    private static DAOUsers usuarios;
+    private static final String URL= "jdbc:mysql://rdsservidor.csf3z3itqpav.us-east-1.rds.amazonaws.com:3306/actividad1";
+    private static final String USER = "admin";
+    private static final String PASSWORD = "Qzmpwxno1029.";
 
     private DBConecctor(){
     }
 
-    public static Connection getInstance(){
-        if(conexion == null) {
-            try {
-                conexion = DriverManager.getConnection(
-                        "rdsservidor.csf3z3itqpav.us-east-1.rds.amazonaws.com",
-                        "admin", "Qzmpwxno1029.");
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+    public static Connection getInstance() throws SQLException {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("Error al cargar el driver JDBC", e);
         }
-        return conexion;
-    }
 
-    public DAOUsers getUsers(){
-        if(usuarios == null){
-            usuarios = new DAOUsersSQL();
-        }
-        return usuarios;
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }

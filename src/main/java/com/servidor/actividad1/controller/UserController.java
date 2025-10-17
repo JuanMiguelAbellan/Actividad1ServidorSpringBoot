@@ -28,7 +28,8 @@ public class UserController {
     }
 
     @PostMapping("/registro")
-    public String registrarUsuario(User user, Model model) {
+    public String registrarUsuario(@RequestParam String nombre, @RequestParam String password, Model model) {
+        User user= new User(nombre, password);
         DAOUsersSQL conexionUser=new DAOUsersSQL();
         if(!conexionUser.validacionUser(user.getNombre(), user.getPassword())){
             conexionUser.add(user);
@@ -50,7 +51,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String validarUsuario(User user, Model model) {
+    public String validarUsuario(@RequestParam String nombre, @RequestParam String password, Model model) {
+        User user= new User(nombre, password);
         DAOUsersSQL users = new DAOUsersSQL();
         if (users.validacionUser(user.getNombre(), user.getPassword())){
             model.addAttribute("usuario", user.getNombre());
