@@ -1,5 +1,8 @@
 package com.servidor.actividad1.clases;
 
+import com.servidor.actividad1.dao.DBConecctor;
+import com.servidor.actividad1.dao.users.DAOUsersSQL;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
@@ -34,6 +37,16 @@ public class Post {
         this.referencia = autor;
     }
 
+    public Post(int idPost, int idPropietario, String texto) {
+        this.id=idPost;
+        this.autor = new User(DAOUsersSQL.getInstance().getUser(idPropietario));
+        this.texto = texto;
+        this.fecha = Date.from(Instant.now());
+        this.likes = 0;
+        this.reposts = 0;
+        this.referencia = autor;
+    }
+
     public int getId() {
         return id;
     }
@@ -60,6 +73,14 @@ public class Post {
 
     public void darLike() {
         ++this.likes;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public void setReposts(int reposts) {
+        this.reposts = reposts;
     }
 
     public void darRepost() {

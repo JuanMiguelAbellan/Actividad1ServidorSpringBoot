@@ -1,6 +1,7 @@
 package com.servidor.actividad1.dao.users;
 
 import com.servidor.actividad1.clases.User;
+import com.servidor.actividad1.dao.DAOFactory;
 import com.servidor.actividad1.dao.DBConecctor;
 
 import java.sql.Connection;
@@ -9,7 +10,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DAOUsersSQL implements DAOUsers{
-    private User usuarioActual=new User(" ", "");
+    private User usuarioActual;
+    private static DAOUsersSQL daoUsersSQL;
+
+    public DAOUsersSQL(){
+    }
+
+    public static DAOUsersSQL getInstance() {
+        if (daoUsersSQL == null){
+            daoUsersSQL = new DAOUsersSQL();
+        }
+        return daoUsersSQL;
+    }
 
     @Override
     public void add(User user) {
@@ -35,7 +47,23 @@ public class DAOUsersSQL implements DAOUsers{
             statement.setString(1, nombre);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                usuario=new User( rs.getString("nombre"), rs.getNString("contraseña"));
+                usuario=new User(rs.getInt("idUsuario"), rs.getString("nombre"), rs.getNString("contraseña"));
+            }
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+        return usuario;
+    }
+
+    public User getUser(int id) {
+        User usuario=null;
+        String query="select * from usuarios where idUsuario= ? ";
+        try (Connection conn = DBConecctor.getInstance()){
+            PreparedStatement statement=conn.prepareStatement(query);
+            statement.setInt(1, id);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()){
+                usuario=new User(rs.getInt("idUsuario"), rs.getString("nombre"), rs.getNString("contraseña"));
             }
         }catch (SQLException e){
             throw new RuntimeException(e);

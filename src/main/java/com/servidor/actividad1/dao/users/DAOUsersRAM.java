@@ -6,7 +6,7 @@ import java.util.List;
 
 public class DAOUsersRAM implements DAOUsers {
     private List<User> listaUsers = new ArrayList();
-    private User usuarioActual=new User(" ", "");
+    private User usuarioActual=new User(0," ", "");
 
     @Override
     public void add(User user) {

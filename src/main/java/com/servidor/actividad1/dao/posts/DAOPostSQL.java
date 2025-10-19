@@ -18,15 +18,12 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public void add(Post post) {
-        DAOUsersSQL conexionUser=new DAOUsersSQL();
+        DAOUsersSQL conexionUser=DAOUsersSQL.getInstance();
         SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-
-        String query = "insert into posts (idPropietario, texto, fecha) values (" +
-                "(select idUsuario from usuarios where nombre = ?)" +
-                ", ?, ?)";
+        String query = "INSERT INTO posts (idPropietario, texto, fecha) VALUES (?, ?, ?)";
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
-            statement.setString(1, conexionUser.getUsuarioActual().getNombre());
+            statement.setInt(1, conexionUser.getUsuarioActual().getId());
             statement.setString(2, post.getTexto());
             statement.setString(3, DATE_FORMAT.format(post.getFecha()));
             statement.executeUpdate();
@@ -38,39 +35,13 @@ public class DAOPostSQL implements DAOPost{
     @Override
     public List<Post> getPosts() {
         List<Post> listaPosts=new ArrayList<>();
-        List<User> listaUsuarios= new ArrayList<>();
-
-        String query1= "select * from usuarios";
-        String query = "select u.idUsuario, u.nombre, p.idPost, p.idPropietario, p.texto from usuarios u, posts p";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                listaUsuarios.add(new User(rs.getInt("idUsuario"), rs.getString("nombre"), null));
-
-                for(User u : listaUsuarios){
-                    if(u.getId() == rs.getInt("idPropietario")) {
-                        System.out.println(listaUsuarios.getFirst().getNombre());
-                        listaPosts.add(new Post(rs.getInt("idPost") ,u, rs.getNString("texto")));
-                        System.out.println(listaPosts.getFirst().getTexto());
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
 
         String query2= "select * from posts";
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query2);
             ResultSet rs = statement.executeQuery();
             while (rs.next()){
-                for(User u : listaUsuarios){
-                    if(u.getId() == rs.getInt("idPropietario")) {
-                        listaPosts.add(new Post(rs.getInt("idPost") ,u, rs.getNString("texto")));
-                        System.out.println(listaPosts.getFirst().getTexto());
-                    }
-                }
+                listaPosts.add(new Post(rs.getInt("idPost"), rs.getInt("idPropietario"), rs.getString("texto")));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -82,10 +53,8 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public List<Post> buscarPorNombre(String nombre) {
-        User user = new User(nombre, null);
-
         List<Post> listaPosts=new ArrayList<>();
-        String query = "select * from posts where idPropietario= (select idUsuario from usuarios where nombre = ?)";
+        String query = "select * from posts where idPropietario = (select idUsuario from usuarios where nombre = ?);";
 
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
@@ -93,7 +62,7 @@ public class DAOPostSQL implements DAOPost{
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()){
-                Post post = new Post(rs.getInt("idPost"),user, rs.getString("texto"));
+                Post post = new Post(rs.getInt("idPost"), new User(rs.getInt("idPropietario"), null, null), rs.getString("texto"));
                 listaPosts.add(post);
 
             }
@@ -106,29 +75,22 @@ public class DAOPostSQL implements DAOPost{
     @Override
     public List<Post> buscarPorTexto(String texto) {
         List<Post> listaPosts=new ArrayList<>();
-        List<User> listaUsuarios= new ArrayList<>();
 
-        String query1= "select * from usuarios";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query1);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                listaUsuarios.add(new User( rs.getString("nombre"), null));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        String query = "select p.idPost, p.texto, p.idPropietario, u.idUsuario, u.nombre " +
+                "from posts p " +
+                "join usuarios u ON p.idPropietario = u.idUsuario " +
+                "where p.texto like ?";
+        try (Connection conn = DBConecctor.getInstance()) {
+            PreparedStatement statement = conn.prepareStatement(query);
+            statement.setString(1, "%" + texto + "%");
 
-        String query2= "select * from posts where texto like '%"+texto+"%'";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query2);
             ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                for(User u : listaUsuarios){
-                    if(u.getId() == rs.getInt("idPropietario")) {
-                        listaPosts.add(new Post(rs.getInt("idPost"), u, rs.getNString("texto")));
-                    }
-                }
+            while (rs.next()) {
+                User u = new User(rs.getInt("idUsuario"), rs.getString("nombre"), null);
+
+                Post p = new Post(rs.getInt("idPost"), u, rs.getString("texto"));
+
+                listaPosts.add(p);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -139,37 +101,27 @@ public class DAOPostSQL implements DAOPost{
     @Override
     public List<Post> buscarPorFecha(String fecha) {
         List<Post> listaPosts=new ArrayList<>();
-
-        List<User> listaUsuarios= new ArrayList<>();
-
-        String query1= "select * from usuarios";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query1);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                listaUsuarios.add(new User( rs.getString("nombre"), null));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        String query2= "select * from post where fecha < ?";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query2);
+        String query = "select p.idPost, p.texto, p.idPropietario, p.fecha,u.idUsuario, u.nombre " +
+                "from posts p " +
+                "join usuarios u on p.idPropietario = u.idUsuario " +
+                "where p.fecha < ?";
+        try (Connection conn = DBConecctor.getInstance()) {
+            PreparedStatement statement = conn.prepareStatement(query);
             statement.setString(1, fecha);
+
             ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                for(User u : listaUsuarios){
-                    if(u.getId() == rs.getInt("idPropietario")) {
-                        listaPosts.add(new Post(rs.getInt("idPost"), u, rs.getNString("texto")));
-                    }
-                }
+            while (rs.next()) {
+                User u = new User(rs.getInt("idUsuario"), rs.getString("nombre"), null);
+
+                Post p = new Post(rs.getInt("idPost"), u, rs.getString("texto"));
+
+                listaPosts.add(p);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
         return listaPosts;
+
     }
 
     @Override
@@ -187,14 +139,14 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public int getLikes(Post post) {
-        String query="select idPost from likes where idPost= ?";
+        String query="select count(idPost) as totalLikes from likes where idPost= ?";
         int likes=0;
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, post.getId());
             ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                likes++;
+            if (rs.next()) {
+                likes = rs.getInt("totalLikes");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -204,14 +156,14 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public int getRepost(Post post) {
-        String query="select idPost from repost where idPost= ?";
+        String query="select count(idPost) as totalRepost from repost where idPost= ?";
         int reposts=0;
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, post.getId());
             ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                reposts++;
+            if (rs.next()) {
+                reposts= rs.getInt("totalRepost");
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -221,14 +173,13 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public void darLike(Post post) {
-        DAOUsersSQL conexionUser=new DAOUsersSQL();
 
         String query = "insert into likes (idUsuario, idPost) values ( "+
                 "?" +
                 ", ?)";
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
-            statement.setInt(1, conexionUser.getUsuarioActual().getId());
+            statement.setInt(1, DAOUsersSQL.getInstance().getUsuarioActual().getId());
             statement.setInt(2, post.getId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -238,56 +189,55 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public void darRepost(Post post) {
-        DAOUsersSQL conexionUser=new DAOUsersSQL();
 
         String query = "insert into repost (idUsuarioRepost, idUsuarioReferencia, idPost) values ( ?, "+
-                "(select idUsuario from posts where idPost = ?)" +
+                "(select idPropietario from posts where idPost = ?)" +
                 ", ?)";
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
-            statement.setInt(1, conexionUser.getUsuarioActual().getId());
+            statement.setInt(1, DAOUsersSQL.getInstance().getUsuarioActual().getId());
             statement.setInt(2, post.getAutor().getId());
             statement.setInt(3, post.getId());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        Post nuevoPost = new Post(DAOUsersSQL.getInstance().getUsuarioActual(), post.getTexto());
+        nuevoPost.setReferencia(post.getAutor());
+        add(nuevoPost);
     }
 
     public List<Post> ordenarAscendente(boolean ascendente){
         List<Post> listaPosts=new ArrayList<>();
-        List<User> listaUsuarios= new ArrayList<>();
-
-        String query1= "select * from usuarios";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query1);
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                listaUsuarios.add(new User( rs.getString("nombre"), null));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
 
         String query;
         if (ascendente){
-            query="select * from posts order by fecha ASC";
+            query = "select p.idPost, p.texto, p.fecha, u.idUsuario, u.nombre " +
+                    "from posts p " +
+                    "join usuarios u on p.idPropietario = u.idUsuario " +
+                    "order by p.fecha ASC";
         }else {
-            query= "select * from posts order by fecha DESC";
+            query= "select p.idPost, p.texto, p.fecha, u.idUsuario, u.nombre " +
+                    "from posts p " +
+                    "join usuarios u on p.idPropietario = u.idUsuario " +
+                    "order by p.fecha DESC";;
         }
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query);
+        try (Connection conn = DBConecctor.getInstance()) {
+            PreparedStatement statement = conn.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
-            while (rs.next()){
-                for(User u : listaUsuarios){
-                    if(u.getId() == rs.getInt("idPropietario")) {
-                        listaPosts.add(new Post(rs.getInt("idPost"), u, rs.getNString("texto")));
-                    }
-                }
+
+            while (rs.next()) {
+                User u = new User(rs.getInt("idUsuario"), rs.getString("nombre"), null);
+
+                Post p = new Post(rs.getInt("idPost"), u, rs.getString("texto"));
+
+                listaPosts.add(p);
             }
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error al obtener los posts ordenados", e);
         }
+
         return listaPosts;
     }
 }

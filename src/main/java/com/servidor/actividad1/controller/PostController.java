@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class PostController {
     @GetMapping({"/post"})
     public String listarPosts(Model model) {
-        DAOPostSQL conexionPost= new DAOPostSQL();
-        List<Post> listaPosts = conexionPost.getPosts();
-        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+        DAOUsersSQL conexionUser=DAOUsersSQL.getInstance();
+        List<Post> listaPosts = listaPost();
+        User usuarioActual = conexionUser.getUsuarioActual();
         model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
@@ -39,7 +39,7 @@ public class PostController {
     @PostMapping({"/nuevoPost"})
     public String crearPost(@RequestParam String texto, @RequestParam String autor, Model model) {
         DAOPostSQL conexionPost= new DAOPostSQL();
-        DAOUsersSQL conexionUser= new DAOUsersSQL();
+        DAOUsersSQL conexionUser=DAOUsersSQL.getInstance();
         User userAutor = conexionUser.getUser(autor);
 
         User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
@@ -49,7 +49,7 @@ public class PostController {
             return "nuevoPost";
         }else {
             conexionPost.add(new Post(userAutor, texto));
-            List<Post> listaPosts = conexionPost.getPosts();
+            List<Post> listaPosts = listaPost();
             model.addAttribute("posts", listaPosts);
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
@@ -58,29 +58,23 @@ public class PostController {
 
     @PostMapping({"/post/{id}"})
     public String accionBotones(@PathVariable int id, @RequestParam String boton, Model model) {
-        List<Post> listaPosts = DAOFactory.getInstance().getDaoPosts().getPosts();
-        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
-        Post nuevoPost = null;
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        List<Post> listaPosts = listaPost();
+        User usuarioActual = DAOUsersSQL.getInstance().getUsuarioActual();
 
         if (boton.equals("like")) {
             for(Post p : listaPosts) {
                 if (p.getId() == id) {
-                    p.darLike();
+                    conexionPost.darLike(p);
                 }
             }
         } else if (boton.equals("repost")) {
             for(Post p : listaPosts) {
                 if (p.getId() == id) {
-                    p.darRepost();
-
-                    nuevoPost = new Post(usuarioActual, p.getTexto());
-                    nuevoPost.setReferencia(p.getAutor());
-
+                    conexionPost.darRepost(p);
                 }
             }
-            listaPosts.add(nuevoPost);
         }
-
         model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
@@ -89,18 +83,18 @@ public class PostController {
     @PostMapping({"/busqueda"})
     public String mostrarBusqueda(@RequestParam String tipoBuscado, @RequestParam String buscado, Model model){
         DAOPostSQL conexionPost= new DAOPostSQL();
-        List<Post> listaPost=new ArrayList<>();
+        List<Post> listaPosts = listaPost();
 
-        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+        User usuarioActual = DAOUsersSQL.getInstance().getUsuarioActual();
         if(tipoBuscado.equals("usuario")){
-            listaPost= conexionPost.buscarPorNombre(buscado);
+            listaPosts= conexionPost.buscarPorNombre(buscado);
         } else if (tipoBuscado.equals("post")) {
-            listaPost= conexionPost.buscarPorTexto(buscado);
+            listaPosts= conexionPost.buscarPorTexto(buscado);
         }
         else if (tipoBuscado.equals("fecha")) {
-            listaPost= conexionPost.buscarPorFecha(buscado);
+            listaPosts= conexionPost.buscarPorFecha(buscado);
         }
-        model.addAttribute("posts", listaPost);
+        model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
     }
@@ -108,23 +102,35 @@ public class PostController {
     @PostMapping({"/ordenar"})
     public String mostrarFiltrado(@RequestParam String tipoOrden, Model model){
         DAOPostSQL conexionPost= new DAOPostSQL();
-        List<Post> listaPost=new ArrayList<>();
-        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
+        List<Post> listaPosts = listaPost();
+        User usuarioActual = DAOUsersSQL.getInstance().getUsuarioActual();
 
         if(tipoOrden.equals("ascendente")){
-            listaPost= conexionPost.ordenarAscendente(true);
-            model.addAttribute("posts", listaPost);
+            listaPosts= conexionPost.ordenarAscendente(true);
+            model.addAttribute("posts", listaPosts);
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
         }else if(tipoOrden.equals("descendente")){
-            listaPost= conexionPost.ordenarAscendente(false);
-            model.addAttribute("posts", listaPost);
+            listaPosts= conexionPost.ordenarAscendente(false);
+            model.addAttribute("posts", listaPosts);
             model.addAttribute("usuario", usuarioActual.getNombre());
             return "inicio";
         }
 
-        model.addAttribute("posts", listaPost);
+        model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
+    }
+
+    public List<Post> listaPost(){
+        DAOPostSQL conexionPost= new DAOPostSQL();
+        List<Post> listaPosts = conexionPost.getPosts();
+        for (int e = 0; e < listaPosts.size(); e++) {
+            int likes = conexionPost.getLikes(listaPosts.get(e));
+            int repost= conexionPost.getRepost(listaPosts.get(e));
+            listaPosts.get(e).setReposts(repost);
+            listaPosts.get(e).setLikes(likes);
+        }
+        return listaPosts;
     }
 }

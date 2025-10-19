@@ -6,16 +6,16 @@ public class User {
     private String password;
     private final int id;
 
-    public User(String nombre, String password) {
-        this.id = contador++;
-        this.nombre = nombre;
-        this.password = password;
-    }
-
     public User(int id, String nombre, String password) {
         this.id = id;
         this.nombre = nombre;
         this.password = password;
+    }
+
+    public User(User user) {
+        this.id= user.id;
+        this.nombre= user.getNombre();
+        this.password= user.getPassword();
     }
 
     public int getId() {
