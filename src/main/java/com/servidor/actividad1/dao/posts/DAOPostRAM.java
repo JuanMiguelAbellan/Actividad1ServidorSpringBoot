@@ -46,6 +46,16 @@ public class DAOPostRAM implements DAOPost {
         return post.getReposts();
     }
 
+    @Override
+    public void darLike(int idPost) {
+
+    }
+
+    @Override
+    public void darRepost(int idPost) {
+
+    }
+
     public void darLike(Post post) {
         post.darLike();
     }

@@ -25,7 +25,7 @@ public interface DAOPost {
 
     int getRepost(Post post);
 
-    void darLike(Post post);
+    void darLike(int idPost);
 
-    void darRepost(Post post);
+    void darRepost(int idPost);
 }

@@ -31,7 +31,6 @@ public class UserController {
     @PostMapping("/registro")
     public String registrarUsuario(@RequestParam String nombre, @RequestParam String password, Model model) {
         User user= new User(0, nombre, password);
-        DAOPostSQL conexionPost= new DAOPostSQL();
         DAOUsersSQL conexionUser=DAOUsersSQL.getInstance();
         List<Post> listaPosts = listaPost();
         if(!conexionUser.validacionUser(user.getNombre(), user.getPassword())){

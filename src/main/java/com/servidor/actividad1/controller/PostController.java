@@ -4,10 +4,6 @@ import com.servidor.actividad1.clases.User;
 import com.servidor.actividad1.dao.DAOFactory;
 import com.servidor.actividad1.clases.Post;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 import com.servidor.actividad1.dao.posts.DAOPostSQL;
@@ -59,22 +55,14 @@ public class PostController {
     @PostMapping({"/post/{id}"})
     public String accionBotones(@PathVariable int id, @RequestParam String boton, Model model) {
         DAOPostSQL conexionPost= new DAOPostSQL();
-        List<Post> listaPosts = listaPost();
         User usuarioActual = DAOUsersSQL.getInstance().getUsuarioActual();
 
         if (boton.equals("like")) {
-            for(Post p : listaPosts) {
-                if (p.getId() == id) {
-                    conexionPost.darLike(p);
-                }
-            }
+            conexionPost.darLike(id);
         } else if (boton.equals("repost")) {
-            for(Post p : listaPosts) {
-                if (p.getId() == id) {
-                    conexionPost.darRepost(p);
-                }
-            }
+            conexionPost.darRepost(id);
         }
+        List<Post> listaPosts = listaPost();
         model.addAttribute("posts", listaPosts);
         model.addAttribute("usuario", usuarioActual.getNombre());
         return "inicio";
