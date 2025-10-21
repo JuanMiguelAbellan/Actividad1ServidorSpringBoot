@@ -46,6 +46,7 @@ public class DAOPostSQL implements DAOPost{
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()){
+                java.sql.Date fechaSQL = rs.getDate("fecha");
                 Post post = new Post(rs.getInt("idPost"), rs.getInt("idPropietario"), rs.getString("texto"));
 
                 if (rs.getInt("idUsuarioReferencia") != 0) {
@@ -53,6 +54,11 @@ public class DAOPostSQL implements DAOPost{
                             rs.getString("nombreReferencia"), null);
                     post.setReferencia(referencia);
                 }
+
+                if (fechaSQL != null) {
+                    post.setFecha(new java.util.Date(fechaSQL.getTime()));
+                }
+
 
                 listaPosts.add(post);
             }

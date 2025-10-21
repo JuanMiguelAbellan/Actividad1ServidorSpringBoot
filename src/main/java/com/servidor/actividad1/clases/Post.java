@@ -94,4 +94,8 @@ public class Post {
     public User getReferencia() {
         return this.referencia;
     }
+
+    public void setFecha(Date date) {
+        this.fecha= date;
+    }
 }
