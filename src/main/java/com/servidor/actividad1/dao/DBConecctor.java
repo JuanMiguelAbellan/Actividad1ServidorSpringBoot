@@ -9,7 +9,8 @@ import java.sql.SQLException;
 
 public class DBConecctor {
 
-    private static final String URL= "jdbc:mysql://rdsservidor.csf3z3itqpav.us-east-1.rds.amazonaws.com:3306/actividad1";
+    //private static final String URL= "jdbc:mysql://rdsservidor.csf3z3itqpav.us-east-1.rds.amazonaws.com:3306/actividad1";
+    private static final String URL = "jdbc:mysql://rdsservidor.csf3z3itqpav.us-east-1.rds.amazonaws.com:3306/actividad1?connectTimeout=5000&socketTimeout=5000&useSSL=false&allowPublicKeyRetrieval=true";
     private static final String USER = "admin";
     private static final String PASSWORD = "Qzmpwxno1029.";
 
@@ -17,12 +18,6 @@ public class DBConecctor {
     }
 
     public static Connection getInstance() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Error al cargar el driver JDBC", e);
-        }
-
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }

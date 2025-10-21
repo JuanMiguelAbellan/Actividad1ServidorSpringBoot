@@ -34,41 +34,32 @@ public class DAOPostSQL implements DAOPost{
 
     @Override
     public List<Post> getPosts() {
-        List<Post> listaPosts=new ArrayList<>();
+        List<Post> listaPosts = new ArrayList<>();
 
-        String query= "select * from posts";
+        String query = "SELECT p.*, r.idUsuarioReferencia, u.nombre as nombreReferencia " +
+                "FROM posts p " +
+                "LEFT JOIN repost r ON p.idPost = r.idPost " +
+                "LEFT JOIN usuarios u ON r.idUsuarioReferencia = u.idUsuario";
+
         try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query);
+            PreparedStatement statement = conn.prepareStatement(query);
             ResultSet rs = statement.executeQuery();
+
             while (rs.next()){
-                listaPosts.add(new Post(rs.getInt("idPost"), rs.getInt("idPropietario"), rs.getString("texto")));
-                for(Post p : listaPosts){
-                    if(getRepost(p)>0){
-                        p.setReferencia(getReferencia(p.getId()));
-                    }
+                Post post = new Post(rs.getInt("idPost"), rs.getInt("idPropietario"), rs.getString("texto"));
+
+                if (rs.getInt("idUsuarioReferencia") != 0) {
+                    User referencia = new User(rs.getInt("idUsuarioReferencia"),
+                            rs.getString("nombreReferencia"), null);
+                    post.setReferencia(referencia);
                 }
+
+                listaPosts.add(post);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return listaPosts;
-    }
-
-    public User getReferencia(int idPost){
-        User referencia=null;
-        String query = "select * from usuarios where idUsuario =" +
-                "(select idUsuarioReferencia from repost where idPost = ? limit 1)";
-        try (Connection conn = DBConecctor.getInstance()){
-            PreparedStatement statement=conn.prepareStatement(query);
-            statement.setInt(1, idPost);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()){
-                referencia= new User(rs.getInt("idUsuario"), rs.getString("nombre"), null);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return referencia;
     }
 
     @Override
@@ -213,20 +204,35 @@ public class DAOPostSQL implements DAOPost{
         String query = "insert into repost (idUsuarioRepost, idUsuarioReferencia, idPost) values ( ?, "+
                 "(select idPropietario from posts where idPost = ?)" +
                 ", ?)";
+        User autorOriginal = getAutor(idPost);
+        Post postOriginal = buscarPorId(idPost);
+        Post nuevoPost = new Post(DAOUsersSQL.getInstance().getUsuarioActual(), postOriginal.getTexto());
+        nuevoPost.setReferencia(autorOriginal);
+        add(nuevoPost);
+
+        int idNuevoPost = getUltimoIdPostCreado();
         try (Connection conn = DBConecctor.getInstance()){
             PreparedStatement statement=conn.prepareStatement(query);
             statement.setInt(1, DAOUsersSQL.getInstance().getUsuarioActual().getId());
-            statement.setInt(2, idPost);
-            statement.setInt(3, idPost);
-
-            Post nuevoPost = buscarPorId(idPost);
-            nuevoPost.setReferencia(getAutor(idPost));
-            add(nuevoPost);
-
+            statement.setInt(2, autorOriginal.getId());
+            statement.setInt(3, idNuevoPost);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private int getUltimoIdPostCreado() {
+        int id = -1;
+        String query = "SELECT idPost FROM posts ORDER BY idPost DESC LIMIT 1";
+        try (Connection conn = DBConecctor.getInstance()) {
+            PreparedStatement st = conn.prepareStatement(query);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) id = rs.getInt("idPost");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return id;
     }
 
     public User getAutor(int idPost) {
