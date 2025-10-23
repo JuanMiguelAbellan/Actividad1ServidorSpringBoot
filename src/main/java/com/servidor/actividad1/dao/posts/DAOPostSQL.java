@@ -3,14 +3,10 @@ package com.servidor.actividad1.dao.posts;
 import com.servidor.actividad1.clases.Post;
 import com.servidor.actividad1.clases.User;
 import com.servidor.actividad1.dao.DBConecctor;
-import com.servidor.actividad1.dao.users.DAOUsers;
 import com.servidor.actividad1.dao.users.DAOUsersSQL;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -258,7 +254,7 @@ public class DAOPostSQL implements DAOPost{
         return autor;
     }
 
-        public Post buscarPorId(int idPost){
+    public Post buscarPorId(int idPost){
         Post encontrado= null;
         String query = "select * from posts where idPost = ?";
         try (Connection conn = DBConecctor.getInstance()){
@@ -274,7 +270,7 @@ public class DAOPostSQL implements DAOPost{
         return encontrado;
     }
 
-        public List<Post> ordenarAscendente(boolean ascendente){
+    public List<Post> ordenarAscendente(boolean ascendente){
         List<Post> listaPosts=new ArrayList<>();
 
         String query;

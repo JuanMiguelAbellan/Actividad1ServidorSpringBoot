@@ -38,17 +38,15 @@ public class PostController {
         DAOUsersSQL conexionUser=DAOUsersSQL.getInstance();
         User userAutor = conexionUser.getUser(autor);
 
-        User usuarioActual = DAOFactory.getInstance().getDaoUsers().getUsuarioActual();
-
         if(userAutor==null){
             model.addAttribute("error", "No existe ese usuario");
             return "nuevoPost";
         }else {
             conexionPost.add(new Post(userAutor, texto));
-            List<Post> listaPosts = listaPost();
-            model.addAttribute("posts", listaPosts);
-            model.addAttribute("usuario", usuarioActual.getNombre());
-            return "inicio";
+            //List<Post> listaPosts = listaPost();
+            //model.addAttribute("posts", listaPosts);
+            //model.addAttribute("usuario", usuarioActual.getNombre());
+            return "redirect:/inicio";
         }
     }
 
@@ -62,10 +60,10 @@ public class PostController {
         } else if (boton.equals("repost")) {
             conexionPost.darRepost(id);
         }
-        List<Post> listaPosts = listaPost();
-        model.addAttribute("posts", listaPosts);
-        model.addAttribute("usuario", usuarioActual.getNombre());
-        return "inicio";
+        //List<Post> listaPosts = listaPost();
+        //model.addAttribute("posts", listaPosts);
+        //model.addAttribute("usuario", usuarioActual.getNombre());
+        return "redirect:/inicio";
     }
 
     @PostMapping({"/busqueda"})
